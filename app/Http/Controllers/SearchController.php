@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Alias;
+use App\Models\Barcode;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+
+use function PHPUnit\Framework\isEmpty;
 
 class SearchController extends Controller
 {
@@ -67,6 +70,7 @@ class SearchController extends Controller
         return $tempProducts;
     }
     function intersecting($queryResults, $searchTerm){
+        $intersectionResults = [];
         if (!empty($queryResults)) {
             $intersectionResults = $queryResults[0];
             foreach ($queryResults as $result) {
@@ -82,9 +86,12 @@ class SearchController extends Controller
                 }
             }
         }
-        $tempProducts = self::paginator($intersectionResults);
-        $tempProducts->appends(['search' => $searchTerm]);
-        return $tempProducts;
+        if(!empty($intersectionResults)){
+            $tempProducts = self::paginator($intersectionResults);
+            $tempProducts->appends(['search' => $searchTerm]);
+            return $tempProducts;
+        }
+        return [];
     }
     function search(){
     //initialize queries
@@ -93,7 +100,6 @@ class SearchController extends Controller
         $query = Product::query();
         $query2 = Product::query();
         $queryFirst = Product::query();
-
         if ($searchTerm) {
             $splitWords = explode(' ', $searchTerm);
             $results= [];
